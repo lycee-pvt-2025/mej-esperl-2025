@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>maths en jeans</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #1d2b64, #f8cdda);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    footer {
+        color:rgb(231, 231, 231);
+        font-size: 0.8rem;
+        align-items: center;
+        text-align: center;
+      }
+    .container {
+      backdrop-filter: blur(15px);
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 25px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+      color: #fff;
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      text-align: center;
+      font-weight: 600;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: #ffffff;
+    }
+
+    label {
+      font-size: 1.1rem;
+      margin: 1rem 0 0.5rem;
+      display: block;
+      color: #e0e0e0;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.8rem;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 15px;
+      background-color: rgba(255,255,255,0.2);
+      color: #fff;
+      margin-bottom: 1rem;
+      backdrop-filter: blur(10px);
+      transition: background 0.3s ease;
+    }
+
+    input::placeholder {
+      color: #ccc;
+    }
+
+    input:focus {
+      outline: none;
+      background-color: rgba(255,255,255,0.3);
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      background: linear-gradient(135deg, #74ebd5, #acb6e5);
+      color: #222;
+      font-weight: bold;
+      font-size: 1.1rem;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+    }
+
+    .convert-btn {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .result {
+      font-size: 1.3rem;
+      margin-top: 1rem;
+      color: #ffffff;
+      text-align: center;
+      word-break: break-word;
+      padding: 0.8rem;
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+    }
+
+    hr {
+      margin: 2rem 0;
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.5rem;
+        border-radius: 20px;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      button {
+        font-size: 1rem;
+        padding: 0.7rem;
+      }
+
+      .result {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🧮 Sujet 14 : Convertisseur esperluette</h1>
+
+    <!-- Binaire Section -->
+    <label for="binaire">Binaire :</label>
+    <input type="text" id="binaire" placeholder="Ex: 1010" readonly>
+    <div class="button-grid">
+      <button onclick="ajouterChar('binaire', '0')">0</button>
+      <button onclick="ajouterChar('binaire', '1')">1</button>
+      <button onclick="effacerChar('binaire')">⌫</button>
+      <button onclick="clearChamp('binaire')">C</button>
+    </div>
+    <button class="convert-btn" onclick="convertirBinaire()">Convertir en Esperluette</button>
+    <div class="result" id="resultatBinaire"></div>
+
+    <hr>
+
+    <!-- Esperluette Section -->
+    <label for="esperluette">Esperluette :</label>
+    <input type="text" id="esperluette" placeholder="Ex: &&&&" readonly>
+    <div class="button-grid">
+      <button onclick="ajouterChar('esperluette', '&')">&</button>
+      <button onclick="effacerChar('esperluette')">⌫</button>
+      <button onclick="clearChamp('esperluette')">C</button>
+    </div>
+    <button class="convert-btn" onclick="convertirEsperluette()">Convertir en Binaire</button>
+    <div class="result" id="resultatEsperluette"></div>
+
+    <footer>Développé par les élèves du Lycée Jacques Prévert.</footer>
+
+  </div>
+
+  <script>
+    function ajouterChar(id, char) {
+      const input = document.getElementById(id);
+      input.value += char;
+    }
+  
+    function effacerChar(id) {
+      const input = document.getElementById(id);
+      input.value = input.value.slice(0, -1);
+    }
+  
+    function clearChamp(id) {
+      document.getElementById(id).value = "";
+      const resultId = id === 'binaire' ? 'resultatBinaire' : 'resultatEsperluette';
+      document.getElementById(resultId).innerText = "";
+    }
+  
+    function convertirBinaire() {
+      const binaire = document.getElementById('binaire').value;
+      const resultat = document.getElementById('resultatBinaire');
+      try {
+        const decimal = parseInt(binaire, 2);
+        if (isNaN(decimal)) throw new Error();
+        resultat.innerText = decimal > 256 ? `& x ${decimal}` : '&'.repeat(decimal);
+      } catch {
+        resultat.innerText = "❌ Entrée invalide. Utilise uniquement 0 et 1.";
+      }
+    }
+  
+    function convertirEsperluette() {
+      const esperluette = document.getElementById('esperluette').value;
+      const resultat = document.getElementById('resultatEsperluette');
+      if ([...esperluette].every(c => c === '&')) {
+        const decimal = esperluette.length;
+        resultat.innerText = decimal.toString(2);
+      } else {
+        resultat.innerText = "❌ Entrée invalide. Utilise uniquement des &.";
+      }
+    }
+  
+    document.getElementById('binaire').addEventListener('input', function () {
+      this.value = this.value.replace(/[^01]/g, '');
+    });
+  
+    document.getElementById('esperluette').addEventListener('input', function () {
+      this.value = this.value.replace(/[^&]/g, '');
+    });
+  </script>
+  
+
+</body>
+</html>
