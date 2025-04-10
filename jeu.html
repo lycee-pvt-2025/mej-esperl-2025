@@ -270,11 +270,17 @@
       updateScoreboard(playerName, timeTaken);
     }
 
-    async function updateScoreboard(name, time) {
+    let hasScored = false;
+
+async function updateScoreboard(name, time) {
+  if (hasScored) return; // empêche double enregistrement
+  hasScored = true;
+
   await esperDB.saveScore(name, time);
   const scores = await esperDB.loadScores();
   displayScoreboard(scores);
 }
+
 
 function displayScoreboard(scores) {
   let table = "<table><tr><th>Nom</th><th>Temps (sec)</th></tr>";
@@ -343,16 +349,31 @@ function displayScoreboard(scores) {
       
       return { str, steps };
     }
-function resetScoreboard() {
-  let pin = prompt("Entrez le code PIN pour réinitialiser le tableau :");
-  if (pin === "2601") {
-    localStorage.removeItem("esperScoreboard");
-    displayScoreboard({});
-    alert("Le tableau des scores a été réinitialisé !");
-  } else {
+    async function resetScoreboard() {
+  const pin = prompt("Entrez le code PIN pour réinitialiser le tableau :");
+  if (pin !== "2601") {
     alert("Code PIN incorrect.");
+    return;
+  }
+
+  try {
+    const snapshot = await esperDB.scoresRef.get(); // Firestore
+    const batch = esperDB.db.batch();
+
+    snapshot.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+    alert("Le tableau des scores a été réinitialisé !");
+    displayScoreboard([]); // vide le tableau affiché
+
+  } catch (error) {
+    console.error("Erreur lors de la réinitialisation :", error);
+    alert("Échec de la réinitialisation.");
   }
 }
+
 
   </script>
   <!-- Firebase SDK -->
