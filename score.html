@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tableau des Scores</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f0f0;
+      padding: 30px;
+      max-width: 700px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #2d3436;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #6c5ce7;
+      color: white;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏆 Tableau des Scores</h1>
+  <div id="scoreboard">Chargement...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // 🔧 Config Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBPj2fsJ1j_EnWsjz2gUHgCOPwWmCSOJu4",
+      authDomain: "esperluette-5c92b.firebaseapp.com",
+      projectId: "esperluette-5c92b",
+      storageBucket: "esperluette-5c92b.firebasestorage.app",
+      messagingSenderId: "600045259645",
+      appId: "1:600045259645:web:2b62bce86c5b1d1f231a14"
+    };
+
+    // 🔌 Init Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function afficherScoreboard() {
+      const container = document.getElementById("scoreboard");
+      try {
+        const snapshot = await db.collection("scores").get();
+        const scores = [];
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data && data.time !== undefined && data.name) {
+            scores.push({ name: data.name, time: parseFloat(data.time) });
+          }
+        });
+
+        if (scores.length === 0) {
+          container.innerHTML = "<p>Aucun score enregistré.</p>";
+          return;
+        }
+
+        // Tri croissant par temps
+        scores.sort((a, b) => a.time - b.time);
+
+        // Création du tableau HTML
+        let html = "<table><tr><th>Nom</th><th>Temps (sec)</th></tr>";
+        scores.forEach(score => {
+          html += `<tr><td>${score.name}</td><td>${score.time.toFixed(2)}</td></tr>`;
+        });
+        html += "</table>";
+
+        container.innerHTML = html;
+
+      } catch (error) {
+        container.innerHTML = "<p>Erreur lors du chargement des scores.</p>";
+        console.error("Erreur Firestore :", error);
+      }
+    }
+
+    afficherScoreboard();
+  </script>
+</body>
+</html>
