@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Le Système Esperluette - Jeu Interactif</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
+
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(to right, #c9d6ff, #e2e2e2);
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+      transition: all 0.3s ease-in-out;
+    }
+    button {
+      padding: 10px 16px;
+      border: none;
+      background: #6c5ce7;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 15px;
+    }
+    button:hover {
+      background-color: #4834d4;
+    }
+    .hidden {
+      display: none;
+    }
+    code {
+      background-color: #f1f1f1;
+      padding: 3px 6px;
+      border-radius: 5px;
+      font-size: 1.1em;
+    }
+    h1, h2 {
+      color: #2d3436;
+    }
+    .example {
+      background-color: #dfe6e9;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 5px solid #6c5ce7;
+    }
+    #esperButtons button {
+      margin: 5px;
+      font-size: 1rem;
+      padding: 10px;
+      width: 48%;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+    .stepGuide {
+      margin-top: 10px;
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+    }
+    /* Style du tableau de scores */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #6c5ce7;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>✨ Bienvenue dans le Monde de l'Esperluette ✨</h1>
+
+  <!-- Page d'accueil avec simulateur et saisie du nom -->
+  <div class="card" id="intro">
+    <p>Avant de commencer l'aventure, entre ton nom :</p>
+    <input type="text" id="playerName" placeholder="Ton nom ici" />
+    <p>Tu veux apprendre à transformer des suites de <code>&amp;</code> en nombres binaires ? Grâce à un système simple de trois règles, tu vas pouvoir comprendre comment faire.</p>
+    <button onclick="startGame()">🎮 Commencer l'aventure</button>
+  </div>
+
+  <!-- Affichage des règles -->
+  <div class="card hidden" id="ruleIntro">
+    <h2>📘 Les règles du jeu</h2>
+    <p>Voici les trois règles du système Esperluette :</p>
+    <ul>
+      <li><strong>r1 :</strong> <code>&amp;x → 0&amp;x</code> — Ajoute un <code>0</code> devant la première esperluette.</li>
+      <li><strong>r2 :</strong> <code>x0&amp;&amp;y → x&amp;0y</code> — Transforme deux esperluettes après un <code>0</code>.</li>
+      <li><strong>r3 :</strong> <code>x0&amp;y → x1y</code> — Remplace <code>0&amp;</code> par <code>1</code>.</li>
+    </ul>
+    <div class="example">
+      <strong>Exemple :</strong><br>
+      Départ : <code>&amp;&amp;&amp;&amp;&amp;</code><br>
+      Étape 1 (r1) : <code>0&amp;&amp;&amp;&amp;</code><br>
+      Étape 2 (r1) : <code>00&amp;&amp;&amp;</code><br>
+      Étape 3 (r1) : <code>000&amp;&amp;</code><br>
+      Étape 4 (r2) : <code>00&amp;0&amp;</code><br>
+      Étape 5 (r3) : <code>0010&amp;</code><br>
+      Étape 6 (r3) : <code>0011</code><br>
+      Résultat : <code>0011</code> → 3 en binaire !
+    </div>
+    <button onclick="startAdventure()">👉 Démarrer l'aventure</button>
+  </div>
+
+  <!-- Écran d'aventure guidée -->
+  <div class="card hidden" id="stepScreen">
+    <h2 id="stepTitle">🧩 Étape 1</h2>
+    <p>Chaîne actuelle : <code id="currentChain"></code></p>
+    <p>Quelle règle veux-tu appliquer ?</p>
+    <button onclick="applyStepRule('r1')">r1</button>
+    <button onclick="applyStepRule('r2')">r2</button>
+    <button onclick="applyStepRule('r3')">r3</button>
+    <p class="stepGuide" id="stepFeedback"></p>
+  </div>
+
+  <!-- Écran de conclusion -->
+  <div class="card hidden" id="conclusion">
+    <h2>🎉 Bravo !</h2>
+    <p>La conversion est terminée.</p>
+    <p>Chaîne finale : <code id="finalResult"></code></p>
+    <p>En binaire, cela donne : <strong id="binaryResult"></strong></p>
+    <p>Temps de conversion : <strong id="timeTaken"></strong> secondes.</p>
+    <h3>Tableau des scores</h3>
+    <div id="scoreboard"></div>
+    <button onclick="restartGame()">🔄 Rejouer</button>
+<!-- ... dans la section Conclusion, juste en dessous du tableau des scores ... -->
+<button onclick="resetScoreboard()">Réinitialiser le tableau des scores</button>
+  </div>
+
+  <!-- Simulateur sur la page d'accueil uniquement -->
+  <div class="card" id="simulator">
+    <h2>🛠️ Simulateur Esperluette</h2>
+    <p>Ajoute des esperluettes à l'aide des boutons :</p>
+    <div id="esperButtons">
+      <button onclick="addEsperluette()">➕ &amp;</button>
+      <button onclick="resetEsperluettes()">♻️ Réinitialiser</button>
+    </div>
+    <input type="text" id="simInput" placeholder="Ex: &&&&" readonly />
+    <button onclick="simulateEsperluette()">🚀 Lancer la simulation</button>
+    <pre id="simOutput"></pre>
+  </div>
+
+  <script>
+    // Variables globales
+    let currentChain = "";
+    let stepCount = 1;
+    let startTime = 0;
+    let playerName = "";
+
+    // Génère une chaîne d'esperluettes aléatoire entre 3 et 10 caractères
+    function generateRandomEsperString() {
+      const length = Math.floor(Math.random() * 8) + 3; // 3 à 10
+      return "&".repeat(length);
+    }
+
+    // Fonction de démarrage depuis la page d'accueil
+    function startGame() {
+      playerName = document.getElementById("playerName").value.trim();
+      if (!playerName) {
+        alert("Veuillez entrer votre nom avant de commencer !");
+        return;
+      }
+      document.getElementById("intro").classList.add("hidden");
+      document.getElementById("ruleIntro").classList.remove("hidden");
+    }
+
+    // Démarre l'aventure et masque le simulateur
+    function startAdventure() {
+      currentChain = generateRandomEsperString();
+      stepCount = 1;
+      startTime = Date.now();
+      document.getElementById("ruleIntro").classList.add("hidden");
+      document.getElementById("simulator").classList.add("hidden");
+      showStepScreen();
+    }
+
+    // Affiche l'écran d'étape mis à jour
+    function showStepScreen() {
+      if (!currentChain.includes("&")) {
+        showConclusion();
+        return;
+      }
+      document.getElementById("stepTitle").textContent = "🧩 Étape " + stepCount;
+      document.getElementById("currentChain").textContent = currentChain;
+      document.getElementById("stepFeedback").textContent = "";
+      document.getElementById("stepScreen").classList.remove("hidden");
+    }
+
+    // Détermine la règle applicable pour la chaîne actuelle
+    function getApplicableRule(chain) {
+      if (/^&/.test(chain)) return "r1";
+      if (/0&&/.test(chain)) return "r2";
+      if (/0&/.test(chain)) return "r3";
+      return null;
+    }
+
+    // Applique une règle une seule fois sur la chaîne
+    function applyRuleOnce(str, rule) {
+      switch (rule) {
+        case 'r1':
+          return str.replace(/^&/, '0&');
+        case 'r2':
+          return str.replace(/0&&/, '0&0');
+        case 'r3':
+          return str.replace(/0&/, '1');
+        default:
+          return str;
+      }
+    }
+
+    // Lorsqu'une règle est sélectionnée sur l'écran d'étape
+    function applyStepRule(rule) {
+      const correctRule = getApplicableRule(currentChain);
+      if (rule !== correctRule) {
+        document.getElementById("stepFeedback").textContent =
+          "❌ La règle applicable ici est " + correctRule + ". Réessaie.";
+        return;
+      }
+      const previousChain = currentChain;
+      currentChain = applyRuleOnce(currentChain, rule);
+      document.getElementById("stepFeedback").textContent =
+        "✔️ Règle " + rule + " appliquée : " + previousChain + " → " + currentChain;
+      stepCount++;
+      setTimeout(() => {
+        document.getElementById("stepScreen").classList.add("hidden");
+        showStepScreen();
+      }, 2000);
+    }
+
+    // Affiche l'écran de conclusion avec le score et met à jour le tableau des scores
+    function showConclusion() {
+      document.getElementById("stepScreen").classList.add("hidden");
+      document.getElementById("conclusion").classList.remove("hidden");
+      document.getElementById("finalResult").textContent = currentChain;
+      if (/^[01]+$/.test(currentChain)) {
+        document.getElementById("binaryResult").textContent = parseInt(currentChain, 2);
+      } else {
+        document.getElementById("binaryResult").textContent = "La conversion n'a pas abouti à une chaîne binaire.";
+      }
+      let timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
+      document.getElementById("timeTaken").textContent = timeTaken;
+      updateScoreboard(playerName, timeTaken);
+    }
+
+    async function updateScoreboard(name, time) {
+  await esperDB.saveScore(name, time);
+  const scores = await esperDB.loadScores();
+  displayScoreboard(scores);
+}
+
+function displayScoreboard(scores) {
+  let table = "<table><tr><th>Nom</th><th>Temps (sec)</th></tr>";
+  scores.forEach(score => {
+    table += `<tr><td>${score.name}</td><td>${score.time}</td></tr>`;
+  });
+  table += "</table>";
+  document.getElementById("scoreboard").innerHTML = table;
+}
+
+
+    // Réinitialise le jeu et réaffiche le simulateur
+    function restartGame() {
+      document.getElementById("conclusion").classList.add("hidden");
+      document.getElementById("intro").classList.remove("hidden");
+      document.getElementById("simulator").classList.remove("hidden");
+    }
+
+    // Simulateur (page d'accueil)
+    function addEsperluette() {
+      const input = document.getElementById("simInput");
+      input.value += "&";
+    }
+
+    function resetEsperluettes() {
+      document.getElementById("simInput").value = "";
+      document.getElementById("simOutput").textContent = "";
+    }
+
+    function simulateEsperluette() {
+      let input = document.getElementById("simInput").value;
+      let result = applyEsperRulesSimulator(input);
+      result.steps.unshift("Départ : " + input);
+      document.getElementById("simOutput").textContent = result.steps.join("\n");
+    }
+
+    function applyEsperRulesSimulator(input) {
+      let str = input;
+      const steps = [];
+      const applyR1 = s => s.replace(/^&/, '0&');
+      const applyR2 = s => s.replace(/(0)&&/, '$1&0');
+      const applyR3 = s => s.replace(/0&/, '1');
+
+      while (str.includes("&")) {
+        if (/^&/.test(str)) {
+          str = applyR1(str);
+          steps.push("r1 → " + str);
+        } else if (/0&&/.test(str)) {
+          str = applyR2(str);
+          steps.push("r2 → " + str);
+        } else if (/0&/.test(str)) {
+          str = applyR3(str);
+          steps.push("r3 → " + str);
+        } else {
+          steps.push("Aucune règle applicable. Fin de la simulation.");
+          break;
+        }
+      }
+      
+      if (/^[01]+$/.test(str)) {
+        steps.push("Résultat : " + str);
+        steps.push("Valeur décimale : " + parseInt(str, 2));
+      } else {
+        steps.push("Résultat : " + str);
+      }
+      
+      return { str, steps };
+    }
+function resetScoreboard() {
+  let pin = prompt("Entrez le code PIN pour réinitialiser le tableau :");
+  if (pin === "2601") {
+    localStorage.removeItem("esperScoreboard");
+    displayScoreboard({});
+    alert("Le tableau des scores a été réinitialisé !");
+  } else {
+    alert("Code PIN incorrect.");
+  }
+}
+
+  </script>
+  <!-- Firebase SDK -->
+<script type="module">
+  // Importation des SDK nécessaires
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+
+apiKey: "AIzaSyBPj2fsJ1j_EnWsjz2gUHgCOPwWmCSOJu4",
+
+authDomain: "esperluette-5c92b.firebaseapp.com",
+
+projectId: "esperluette-5c92b",
+
+storageBucket: "esperluette-5c92b.firebasestorage.app",
+
+messagingSenderId: "600045259645",
+
+appId: "1:600045259645:web:2b62bce86c5b1d1f231a14"
+
+};
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.esperDB = {
+    async saveScore(name, time) {
+      try {
+        await addDoc(collection(db, "scores"), {
+          name,
+          time: parseFloat(time),
+          timestamp: new Date()
+        });
+      } catch (e) {
+        console.error("Erreur enregistrement :", e);
+      }
+    },
+
+    async loadScores() {
+      const scoresRef = collection(db, "scores");
+      const q = query(scoresRef, orderBy("time"));
+      const snapshot = await getDocs(q);
+      const scores = [];
+      snapshot.forEach(doc => {
+        scores.push(doc.data());
+      });
+      return scores;
+    }
+  };
+</script>
+</body>
+</html>
