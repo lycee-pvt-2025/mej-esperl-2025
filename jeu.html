@@ -126,7 +126,7 @@
       Étape 5 (r3) : <code>1&amp;0&amp;0&amp;</code><br>
       Étape 6 (r3) : <code>11&amp;0&amp;</code><br>
       Étape 7 (r3) : <code>111</code><br>
-      Résultat : <code>111</code> → 7 en binaire !
+      Résultat : <code>111</code> → 5 en binaire !
     </div>
     <button onclick="startAdventure()">👉 Démarrer l'aventure</button>
   </div>
@@ -176,13 +176,14 @@
     let stepCount = 1;
     let startTime = 0;
     let playerName = "";
-
+    let hasScored = false;
+  
     // Génère une chaîne d'esperluettes aléatoire entre 3 et 10 caractères
     function generateRandomEsperString() {
       const length = Math.floor(Math.random() * 8) + 3; // 3 à 10
       return "&".repeat(length);
     }
-
+  
     // Fonction de démarrage depuis la page d'accueil
     function startGame() {
       playerName = document.getElementById("playerName").value.trim();
@@ -193,17 +194,18 @@
       document.getElementById("intro").classList.add("hidden");
       document.getElementById("ruleIntro").classList.remove("hidden");
     }
-
+  
     // Démarre l'aventure et masque le simulateur
     function startAdventure() {
       currentChain = generateRandomEsperString();
       stepCount = 1;
       startTime = Date.now();
+      hasScored = false;
       document.getElementById("ruleIntro").classList.add("hidden");
       document.getElementById("simulator").classList.add("hidden");
       showStepScreen();
     }
-
+  
     // Affiche l'écran d'étape mis à jour
     function showStepScreen() {
       if (!currentChain.includes("&")) {
@@ -215,29 +217,29 @@
       document.getElementById("stepFeedback").textContent = "";
       document.getElementById("stepScreen").classList.remove("hidden");
     }
-
+  
     // Détermine la règle applicable pour la chaîne actuelle
     function getApplicableRule(chain) {
-      if (/^&/.test(chain)) return "r1";
-      if (/0&&/.test(chain)) return "r2";
-      if (/0&/.test(chain)) return "r3";
+      if (/^&/.test(chain)) return "r1";              // r1 : &x → 0&x
+      if (/0&&/.test(chain)) return "r2";             // r2 : x0&&y → x&0y
+      if (/0&/.test(chain)) return "r3";              // r3 : x0&y → x1y
       return null;
     }
-
+  
     // Applique une règle une seule fois sur la chaîne
     function applyRuleOnce(str, rule) {
       switch (rule) {
         case 'r1':
           return str.replace(/^&/, '0&');
         case 'r2':
-          return str.replace(/0&&/, '0&0');
+          return str.replace(/0&&/, '&0');
         case 'r3':
           return str.replace(/0&/, '1');
         default:
           return str;
       }
     }
-
+  
     // Lorsqu'une règle est sélectionnée sur l'écran d'étape
     function applyStepRule(rule) {
       const correctRule = getApplicableRule(currentChain);
@@ -256,76 +258,76 @@
         showStepScreen();
       }, 2000);
     }
-
-    // Affiche l'écran de conclusion avec le score et met à jour le tableau des scores
+  
+    // Affiche l'écran de conclusion avec le score
     function showConclusion() {
       document.getElementById("stepScreen").classList.add("hidden");
       document.getElementById("conclusion").classList.remove("hidden");
       document.getElementById("finalResult").textContent = currentChain;
+  
       if (/^[01]+$/.test(currentChain)) {
         document.getElementById("binaryResult").textContent = parseInt(currentChain, 2);
       } else {
-        document.getElementById("binaryResult").textContent = "La conversion n'a pas abouti à une chaîne binaire.";
+        document.getElementById("binaryResult").textContent =
+          "La conversion n'a pas abouti à une chaîne binaire.";
       }
-      let timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
+  
+      const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
       document.getElementById("timeTaken").textContent = timeTaken;
       updateScoreboard(playerName, timeTaken);
     }
-
-    let hasScored = false;
-
-async function updateScoreboard(name, time) {
-  if (hasScored) return; // empêche double enregistrement
-  hasScored = true;
-
-  await esperDB.saveScore(name, time);
-  const scores = await esperDB.loadScores();
-  displayScoreboard(scores);
-}
-
-
-function displayScoreboard(scores) {
-  let table = "<table><tr><th>Nom</th><th>Temps (sec)</th></tr>";
-  scores.forEach(score => {
-    table += `<tr><td>${score.name}</td><td>${score.time}</td></tr>`;
-  });
-  table += "</table>";
-  document.getElementById("scoreboard").innerHTML = table;
-}
-
-
-    // Réinitialise le jeu et réaffiche le simulateur
+  
+    // Met à jour le tableau des scores
+    async function updateScoreboard(name, time) {
+      if (hasScored) return;
+      hasScored = true;
+  
+      await esperDB.saveScore(name, time);
+      const scores = await esperDB.loadScores();
+      displayScoreboard(scores);
+    }
+  
+    function displayScoreboard(scores) {
+      let table = "<table><tr><th>Nom</th><th>Temps (sec)</th></tr>";
+      scores.forEach(score => {
+        table += `<tr><td>${score.name}</td><td>${score.time}</td></tr>`;
+      });
+      table += "</table>";
+      document.getElementById("scoreboard").innerHTML = table;
+    }
+  
+    // Réinitialise le jeu
     function restartGame() {
       document.getElementById("conclusion").classList.add("hidden");
       document.getElementById("intro").classList.remove("hidden");
       document.getElementById("simulator").classList.remove("hidden");
     }
-
-    // Simulateur (page d'accueil)
+  
+    // Ajout et reset dans le simulateur
     function addEsperluette() {
       const input = document.getElementById("simInput");
       input.value += "&";
     }
-
+  
     function resetEsperluettes() {
       document.getElementById("simInput").value = "";
       document.getElementById("simOutput").textContent = "";
     }
-
+  
     function simulateEsperluette() {
-      let input = document.getElementById("simInput").value;
-      let result = applyEsperRulesSimulator(input);
+      const input = document.getElementById("simInput").value;
+      const result = applyEsperRulesSimulator(input);
       result.steps.unshift("Départ : " + input);
       document.getElementById("simOutput").textContent = result.steps.join("\n");
     }
-
+  
     function applyEsperRulesSimulator(input) {
       let str = input;
       const steps = [];
       const applyR1 = s => s.replace(/^&/, '0&');
-      const applyR2 = s => s.replace(/(0)&&/, '$1&0');
+      const applyR2 = s => s.replace(/0&&/, '&0');
       const applyR3 = s => s.replace(/0&/, '1');
-
+  
       while (str.includes("&")) {
         if (/^&/.test(str)) {
           str = applyR1(str);
@@ -337,46 +339,45 @@ function displayScoreboard(scores) {
           str = applyR3(str);
           steps.push("r3 → " + str);
         } else {
-          steps.push("Aucune règle applicable. Fin de la simulation.");
+          steps.push("⚠️ Aucune règle applicable. Fin de la simulation.");
           break;
         }
       }
-      
+  
       if (/^[01]+$/.test(str)) {
-        steps.push("Résultat : " + str);
+        steps.push("✅ Résultat : " + str);
       } else {
-        steps.push("Résultat : " + str);
+        steps.push("❌ Résultat non binaire : " + str);
       }
-      
+  
       return { str, steps };
     }
+  
+    // Réinitialise le tableau des scores
     async function resetScoreboard() {
-  const pin = prompt("Entrez le code PIN pour réinitialiser le tableau :");
-  if (pin !== "2601") {
-    alert("Code PIN incorrect.");
-    return;
-  }
-
-  try {
-    const snapshot = await esperDB.scoresRef.get(); // Firestore
-    const batch = esperDB.db.batch();
-
-    snapshot.forEach(doc => {
-      batch.delete(doc.ref);
-    });
-
-    await batch.commit();
-    alert("Le tableau des scores a été réinitialisé !");
-    displayScoreboard([]); // vide le tableau affiché
-
-  } catch (error) {
-    console.error("Erreur lors de la réinitialisation :", error);
-    alert("Échec de la réinitialisation.");
-  }
-}
-
-
-  </script>
+      const pin = prompt("Entrez le code PIN pour réinitialiser le tableau :");
+      if (pin !== "2601") {
+        alert("Code PIN incorrect.");
+        return;
+      }
+  
+      try {
+        const snapshot = await esperDB.scoresRef.get(); // Firestore
+        const batch = esperDB.db.batch();
+  
+        snapshot.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+  
+        await batch.commit();
+        alert("Le tableau des scores a été réinitialisé !");
+        displayScoreboard([]);
+      } catch (error) {
+        console.error("Erreur lors de la réinitialisation :", error);
+        alert("Échec de la réinitialisation.");
+      }
+    }
+  </script>  
   <!-- Firebase SDK -->
 <script type="module">
   // Importation des SDK nécessaires
