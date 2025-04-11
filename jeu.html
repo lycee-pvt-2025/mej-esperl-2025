@@ -119,16 +119,18 @@
     <div class="example">
       <strong>Exemple :</strong><br>
       Départ : <code>&amp;&amp;&amp;&amp;&amp;</code><br>
-      Étape 1 (r1) : <code>0&amp;&amp;&amp;&amp;</code><br>
-      Étape 2 (r1) : <code>00&amp;&amp;&amp;</code><br>
-      Étape 3 (r1) : <code>000&amp;&amp;</code><br>
-      Étape 4 (r2) : <code>00&amp;0&amp;</code><br>
-      Étape 5 (r3) : <code>0010&amp;</code><br>
-      Étape 6 (r3) : <code>0011</code><br>
-      Résultat : <code>0011</code> → 3 en binaire !
+      Étape 1 (r1) : <code>0&amp;&amp;&amp;&amp;&amp;</code><br>
+      Étape 2 (r2) : <code>0&amp;0&amp;&amp;&amp;</code><br>
+      Étape 3 (r2) : <code>0&amp;0&amp;0&amp;&amp;</code><br>
+      Étape 4 (r2) : <code>0&amp;0&amp;0&amp;0&amp;</code><br>
+      Étape 5 (r3) : <code>1&amp;0&amp;0&amp;</code><br>
+      Étape 6 (r3) : <code>11&amp;0&amp;</code><br>
+      Étape 7 (r3) : <code>111</code><br>
+      Résultat : <code>111</code> → 7 en binaire !
     </div>
     <button onclick="startAdventure()">👉 Démarrer l'aventure</button>
   </div>
+  
 
   <!-- Écran d'aventure guidée -->
   <div class="card hidden" id="stepScreen">
